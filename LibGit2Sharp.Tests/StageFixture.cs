@@ -334,5 +334,25 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(FileStatus.Added, repo.RetrieveStatus(path));
             }
         }
+
+        [Fact]
+        public void CanSuccessfullyStageTheContentOfAModifiedFileOfTheSameSizeWithinTheSameSecond()
+        {
+            string repoPath = InitNewRepository();
+
+            using (var repo = new Repository(repoPath))
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    Touch(repo.Info.WorkingDirectory, "test.txt",
+                               Guid.NewGuid().ToString());
+
+                    repo.Stage("test.txt");
+
+                    Assert.DoesNotThrow(() => repo.Commit(
+                                "Commit", Constants.Signature, Constants.Signature));
+                }
+            }
+        }
     }
 }
