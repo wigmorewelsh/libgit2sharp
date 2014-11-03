@@ -81,5 +81,32 @@ namespace LibGit2Sharp.Tests
                 Assert.True(repo.Ignore.IsPathIgnored(string.Format(@"NewFolder{0}NewFolder{0}File.txt", Path.DirectorySeparatorChar)));
             }
         }
+
+        [Fact]
+        public void HonorThePlatformPathSeparatorCharInTheGitIgnoreFile()
+        {
+            string path = InitNewRepository();
+            using (var repo = new Repository(path))
+            {
+                Touch(repo.Info.WorkingDirectory, ".gitignore", string.Format("{0}fixes{1}Fixes.zip{1}",
+                    Path.DirectorySeparatorChar, Environment.NewLine));
+                Touch(repo.Info.WorkingDirectory, "fixes/one", "one{1}");
+                Touch(repo.Info.WorkingDirectory, "fixes/two", "two{1}");
+                Touch(repo.Info.WorkingDirectory, "Fixes.zip", "three{1}");
+                Touch(repo.Info.WorkingDirectory, "Hello.txt", "world{1}");
+
+                Assert.False(repo.Ignore.IsPathIgnored("Hello.txt"));
+                Assert.True(repo.Ignore.IsPathIgnored("fixes"));
+                Assert.True(repo.Ignore.IsPathIgnored(string.Format(@"fixes{0}one", Path.DirectorySeparatorChar)));
+                Assert.True(repo.Ignore.IsPathIgnored("Fixes.zip"));
+
+                var status = repo.RetrieveStatus();
+
+                Assert.Equal(new[] { "Fixes.zip", string.Format("fixes{0}", Path.DirectorySeparatorChar) },
+                    status.Ignored.Select(se => se.FilePath));
+                Assert.Equal(new[] { ".gitignore", "Hello.txt" },
+                    status.Untracked.Select(se => se.FilePath));
+            }
+        }
     }
 }
