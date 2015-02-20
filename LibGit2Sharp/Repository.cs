@@ -31,6 +31,7 @@ namespace LibGit2Sharp
         private readonly NoteCollection notes;
         private readonly Lazy<ObjectDatabase> odb;
         private readonly Lazy<Network> network;
+        private readonly Lazy<Rebase> rebaseOperation;
         private readonly Stack<IDisposable> toCleanup = new Stack<IDisposable>();
         private readonly Ignore ignore;
         private readonly SubmoduleCollection submodules;
@@ -121,6 +122,7 @@ namespace LibGit2Sharp
                 notes = new NoteCollection(this);
                 ignore = new Ignore(this);
                 network = new Lazy<Network>(() => new Network(this));
+                rebaseOperation = new Lazy<Rebase>(() => new Rebase(this));
                 pathCase = new Lazy<PathCase>(() => new PathCase(this));
                 submodules = new SubmoduleCollection(this);
 
@@ -258,6 +260,17 @@ namespace LibGit2Sharp
             get
             {
                 return network.Value;
+            }
+        }
+
+        /// <summary>
+        /// Provides access to network functionality for a repository.
+        /// </summary>
+        public Rebase RebaseOperation
+        {
+            get
+            {
+                return rebaseOperation.Value;
             }
         }
 
@@ -1284,24 +1297,6 @@ namespace LibGit2Sharp
 
                 rebaseOperationHandle.SafeDispose();
                 rebaseOperationHandle = null;
-            }
-        }
-
-        /// <summary>
-        /// Get the current rebase operation in progress (if any).
-        /// Currently only returns for rebase merge. If a rebase merge
-        /// operation is not progress, returns null.
-        /// </summary>
-        public RebaseOperation CurrentRebaseOperation
-        {
-            get
-            {
-                if (Info.CurrentOperation == LibGit2Sharp.CurrentOperation.RebaseMerge)
-                {
-                    return new RebaseOperation(this);
-                }
-
-                return null;
             }
         }
 
