@@ -1226,6 +1226,8 @@ namespace LibGit2Sharp
             GitAnnotatedCommitHandle annotatedUpstreamRefPtrCommitHandle = null;
             GitAnnotatedCommitHandle annotatedOntoRefPtrCommitHandle = null;
 
+            RebaseSafeHandle rebaseOperationHandle = null;
+
             try
             {
                 branchRefPtr = (branch == null) ?
@@ -1255,15 +1257,13 @@ namespace LibGit2Sharp
                     version = 1,
                 };
 
-                RebaseSafeHandle rebaseOperationHandle = Proxy.git_rebase_init(this.Handle,
+                rebaseOperationHandle = Proxy.git_rebase_init(this.Handle,
                     annotatedBranchCommitHandle,
                     annotatedUpstreamRefPtrCommitHandle,
                     annotatedOntoRefPtrCommitHandle,
                     null, ref gitRebaseOptions);
 
-                var rebaseDriver = new RebaseOperationImpl(rebaseOperationHandle, this, committer, options);
-                RebaseResult rebaseResult = rebaseDriver.Run();
-
+                RebaseResult rebaseResult = RebaseOperationImpl.Run(rebaseOperationHandle, this, committer, options);
                 return rebaseResult;
             }
             finally
@@ -1281,6 +1281,9 @@ namespace LibGit2Sharp
                 annotatedUpstreamRefPtrCommitHandle = null;
                 annotatedOntoRefPtrCommitHandle.SafeDispose();
                 annotatedOntoRefPtrCommitHandle = null;
+
+                rebaseOperationHandle.SafeDispose();
+                rebaseOperationHandle = null;
             }
         }
 
