@@ -17,7 +17,7 @@ namespace LibGit2Sharp
         protected RebaseStepInfo()
         { }
 
-        internal RebaseStepInfo(RebaseStepOperation type, ObjectId id, string exec, int stepIndex, int totalStepCount)
+        internal RebaseStepInfo(RebaseStepOperation type, ObjectId id, string exec, long stepIndex, long totalStepCount)
         {
             Type = type;
             ID = id;
@@ -44,11 +44,11 @@ namespace LibGit2Sharp
         /// <summary>
         /// The index of this step.
         /// </summary>
-        public virtual int StepIndex { get; private set; }
+        public virtual long StepIndex { get; private set; }
 
         /// <summary>
         /// The total number of steps.
         /// </summary>
-        public virtual int TotalStepCount { get; private set; }
+        public virtual long TotalStepCount { get; private set; }
     }
 }

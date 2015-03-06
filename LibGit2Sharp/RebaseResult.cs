@@ -39,8 +39,8 @@ namespace LibGit2Sharp
         { }
 
         internal RebaseResult(RebaseStatus status,
-                              int stepNumber,
-                              int totalSteps,
+                              long stepNumber,
+                              long totalSteps,
                               RebaseStepInfo currentStepInfo)
         {
             Status = status;
@@ -66,11 +66,11 @@ namespace LibGit2Sharp
         /// <summary>
         /// The number of completed steps.
         /// </summary>
-        public virtual int CompletedStepCount { get; protected set; }
+        public virtual long CompletedStepCount { get; protected set; }
 
         /// <summary>
         /// The total number of steps in the rebase.
         /// </summary>
-        public virtual int TotalStepCount { get; protected set; }
+        public virtual long TotalStepCount { get; protected set; }
     }
 }

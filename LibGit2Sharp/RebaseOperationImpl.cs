@@ -40,8 +40,8 @@ namespace LibGit2Sharp
                 {
                     rebaseOperationReport = Proxy.git_rebase_next(rebaseOperationHandle, ref gitCheckoutOpts);
 
-                    int currentStepIndex = Proxy.git_rebase_operation_current(rebaseOperationHandle);
-                    int totalStepCount = Proxy.git_rebase_operation_entrycount(rebaseOperationHandle);
+                    long currentStepIndex = Proxy.git_rebase_operation_current(rebaseOperationHandle);
+                    long totalStepCount = Proxy.git_rebase_operation_entrycount(rebaseOperationHandle);
 
                     if (rebaseOperationReport == null)
                     {

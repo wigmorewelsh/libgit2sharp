@@ -178,8 +178,8 @@ namespace LibGit2Sharp
                 if (options.RebaseStepCompleted != null)
                 {
                     // Get information on the current step
-                    int currentStepIndex = Proxy.git_rebase_operation_current(rebase);
-                    int totalStepCount = Proxy.git_rebase_operation_entrycount(rebase);
+                    long currentStepIndex = Proxy.git_rebase_operation_current(rebase);
+                    long totalStepCount = Proxy.git_rebase_operation_entrycount(rebase);
                     GitRebaseOperation gitRebasestepInfo = Proxy.git_rebase_operation_byindex(rebase, currentStepIndex);
 
                     var stepInfo = new RebaseStepInfo(gitRebasestepInfo.type,
@@ -246,8 +246,8 @@ namespace LibGit2Sharp
             try
             {
                 rebaseHandle = Proxy.git_rebase_open(repository.Handle);
-                int currentStepIndex = Proxy.git_rebase_operation_current(rebaseHandle);
-                int totalStepCount = Proxy.git_rebase_operation_entrycount(rebaseHandle);
+                long currentStepIndex = Proxy.git_rebase_operation_current(rebaseHandle);
+                long totalStepCount = Proxy.git_rebase_operation_entrycount(rebaseHandle);
                 GitRebaseOperation gitRebasestepInfo = Proxy.git_rebase_operation_byindex(rebaseHandle, currentStepIndex);
                 var stepInfo = new RebaseStepInfo(gitRebasestepInfo.type,
                                                   gitRebasestepInfo.id,
