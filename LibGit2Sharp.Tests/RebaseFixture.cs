@@ -54,8 +54,6 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(stepCount, rebaseResult.TotalStepCount);
                 Assert.Null(rebaseResult.CurrentStepInfo);
 
-                // What is the "current step" of a completed operation?
-                // it looks like it is total steps - 1
                 Assert.Equal(stepCount, rebaseResult.CompletedStepCount);
                 Assert.False(repo.RetrieveStatus().IsDirty);
 
@@ -156,7 +154,7 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(3, rebaseResult.TotalStepCount);
 
                 RebaseStepInfo info = repo.Rebase.GetCurrentStepInfo();
-                Assert.Equal(0, info.StepIndex);
+                Assert.Equal(0, info.CurrentStep);
                 Assert.Equal(3, info.TotalStepCount);
                 Assert.Equal(RebaseStepOperation.Pick, info.Type);
             }

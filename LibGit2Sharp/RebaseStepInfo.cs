@@ -22,7 +22,7 @@ namespace LibGit2Sharp
             Type = type;
             ID = id;
             Exec = exec;
-            StepIndex = stepIndex;
+            CurrentStep = stepIndex;
             TotalStepCount = totalStepCount;
         }
 
@@ -44,7 +44,7 @@ namespace LibGit2Sharp
         /// <summary>
         /// The index of this step.
         /// </summary>
-        public virtual long StepIndex { get; private set; }
+        public virtual long CurrentStep { get; private set; }
 
         /// <summary>
         /// The total number of steps.
