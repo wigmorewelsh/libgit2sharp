@@ -24,7 +24,11 @@ namespace LibGit2Sharp.Tests
         [InlineData(topicBranch2Name, topicBranch1Name, masterBranch2Name, masterBranch2Name, 3)]
         [InlineData(topicBranch2Name, topicBranch1Name, masterBranch2Name, null, 3)]
         [InlineData(topicBranch1Name, null, masterBranch2Name, null, 3)]
-        public void CanRebase(string initialBranchName, string branchName, string upstreamName, string ontoName, int stepCount)
+        public void CanRebase(string initialBranchName,
+                              string branchName,
+                              string upstreamName,
+                              string ontoName,
+                              int stepCount)
         {
             SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
             var path = Repository.Init(scd.DirectoryPath);
@@ -36,15 +40,31 @@ namespace LibGit2Sharp.Tests
                 Assert.False(repo.RetrieveStatus().IsDirty);
 
                 Branch branch = (branchName == null) ? null : repo.Branches[branchName];
-                Branch upstream = (upstreamName == null) ? null : repo.Branches[upstreamName];
+                Branch upstream = repo.Branches[upstreamName];
                 Branch onto = (ontoName == null) ? null : repo.Branches[ontoName];
+                Commit expectedSinceCommit = (branch == null) ? repo.Head.Tip : branch.Tip;
+                Commit expectedUntilCommit = upstream.Tip;
+                Commit expectedOntoCommit = (onto == null) ? upstream.Tip : onto.Tip;
 
                 int beforeStepCallCount = 0;
                 int afterStepCallCount = 0;
+
+                List<ObjectId> PreRebaseCommits = new List<ObjectId>();
+                List<ObjectId> PostRebaseCommits = new List<ObjectId>();
+                ObjectId expectedParentId = upstream.Tip.Id;
+
                 RebaseOptions options = new RebaseOptions()
                 {
-                    RebaseStepStarting = x => beforeStepCallCount++,
-                    RebaseStepCompleted = x => afterStepCallCount++,
+                    RebaseStepStarting =  x => 
+                    {
+                        beforeStepCallCount++;
+                        PreRebaseCommits.Add(x.StepInfo.ID);
+                    },
+                    RebaseStepCompleted = x =>
+                    {
+                        afterStepCallCount++;
+                        PostRebaseCommits.Add(x.CommitId);
+                    },
                 };
 
                 RebaseResult rebaseResult = repo.Rebase.Start(branch, upstream, onto, Constants.Signature, options);
@@ -60,7 +80,24 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(stepCount, beforeStepCallCount);
                 Assert.Equal(stepCount, afterStepCallCount);
 
-                // TODO: Validate the expected HEAD commit ID
+                // Verify the chain of source commits that were rebased.
+                CommitFilter sourceCommitFilter = new CommitFilter()
+                {
+                    Since = expectedSinceCommit,
+                    Until = expectedUntilCommit,
+                    SortBy = CommitSortStrategies.Reverse | CommitSortStrategies.Topological,
+                };
+                Assert.Equal(repo.Commits.QueryBy(sourceCommitFilter).Select(c => c.Id), PreRebaseCommits);
+
+                // Verify the chain of commits that resulted from the rebase.
+                Commit expectedParent = expectedOntoCommit;
+                foreach(Commit rebasedCommit in PostRebaseCommits.Select(id => repo.Lookup<Commit>(id)))
+                {
+                    Assert.Equal(expectedParent.Id, rebasedCommit.Parents.First().Id);
+                    expectedParent = rebasedCommit;
+                }
+
+                Assert.Equal(repo.Head.Tip.Id, PostRebaseCommits.Last());
             }
         }
 
