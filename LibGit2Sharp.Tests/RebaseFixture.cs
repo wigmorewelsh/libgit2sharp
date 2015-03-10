@@ -101,6 +101,74 @@ namespace LibGit2Sharp.Tests
             }
         }
 
+        private class rebaseStepInfo
+        {
+            public Commit Commit { get; set; }
+        }
+
+        /// <summary>
+        /// Verify a single rebase, but in more detail.
+        /// </summary>
+        [Fact]
+        public void VerifyRebaseDetailed()
+        {
+            SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
+            var path = Repository.Init(scd.DirectoryPath);
+
+            using (Repository repo = new Repository(path))
+            {
+                ConstructRebaseTestRepository(repo);
+
+                Branch initialBranch = repo.Branches[topicBranch1Name];
+                Branch upstreamBranch = repo.Branches[masterBranch2Name];
+
+                repo.Checkout(initialBranch);
+                Assert.False(repo.RetrieveStatus().IsDirty);
+
+                bool wasCheckoutProgressCalled = false;
+                bool wasCheckoutNotifyCalled = false;
+
+                RebaseOptions options = new RebaseOptions()
+                {
+                    OnCheckoutProgress = (x, y, z) => wasCheckoutProgressCalled = true,
+                    OnCheckoutNotify = (x, y) => { wasCheckoutNotifyCalled = true; return true; },
+                    CheckoutNotifyFlags = CheckoutNotifyFlags.Updated,
+                };
+
+                repo.Rebase.Start(null, upstreamBranch, null, Constants.Signature2, options);
+
+                Assert.Equal(true, wasCheckoutNotifyCalled);
+                Assert.Equal(true, wasCheckoutProgressCalled);
+
+                // Verify the chain of resultant rebased commits.
+                CommitFilter commitFilter = new CommitFilter()
+                {
+                    Since = repo.Head.Tip,
+                    Until = upstreamBranch.Tip,
+                    SortBy = CommitSortStrategies.Reverse | CommitSortStrategies.Topological,
+                };
+
+                List<ObjectId> expectedTreeIds = new List<ObjectId>()
+                {
+                    new ObjectId("447bad85bcc1882037848370620a6f88e8ee264e"),
+                    new ObjectId("3b0fc846952496a64b6149064cde21215daca8f8"),
+                    new ObjectId("a2d114246012daf3ef8e7ccbfbe91889a24e1e60"),
+                };
+
+                List<Commit> rebasedCommits = repo.Commits.QueryBy(commitFilter).ToList();
+
+                Assert.Equal(3, rebasedCommits.Count);
+                for(int i = 0; i < 3; i++)
+                {
+                    Assert.Equal(expectedTreeIds[i], rebasedCommits[i].Tree.Id);
+                    Assert.Equal(Constants.Signature.Name, rebasedCommits[i].Author.Name);
+                    Assert.Equal(Constants.Signature.Email, rebasedCommits[i].Author.Email);
+                    Assert.Equal(Constants.Signature2.Name, rebasedCommits[i].Committer.Name);
+                    Assert.Equal(Constants.Signature2.Email, rebasedCommits[i].Committer.Email);
+                }
+            }
+        }
+
         [Fact]
         public void CanContinueRebase()
         {
@@ -119,10 +187,16 @@ namespace LibGit2Sharp.Tests
 
                 int beforeStepCallCount = 0;
                 int afterStepCallCount = 0;
+                bool wasCheckoutProgressCalled = false;
+                bool wasCheckoutNotifyCalled = false;
+
                 RebaseOptions options = new RebaseOptions()
                 {
                     RebaseStepStarting = x => beforeStepCallCount++,
                     RebaseStepCompleted = x => afterStepCallCount++,
+                    OnCheckoutProgress = (x, y, z) => wasCheckoutProgressCalled = true,
+                    OnCheckoutNotify = (x, y) => { wasCheckoutNotifyCalled = true; return true; },
+                    CheckoutNotifyFlags = CheckoutNotifyFlags.Updated | CheckoutNotifyFlags.Conflict,
                 };
 
                 RebaseResult rebaseResult = repo.Rebase.Start(branch, upstream, onto, Constants.Signature, options);
@@ -135,8 +209,13 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(0, rebaseResult.CompletedStepCount);
                 Assert.Equal(3, rebaseResult.TotalStepCount);
 
+                // Verify that expected callbacks were called
                 Assert.Equal(1, beforeStepCallCount);
                 Assert.Equal(0, afterStepCallCount);
+                Assert.True(wasCheckoutProgressCalled, "CheckoutProgress callback was not called.");
+
+                // TODO: investigate following statement.
+                // Assert.True(wasCheckoutNotifyCalled, "CheckoutNotify callback was not called.");
 
                 // Resolve the conflict
                 foreach (Conflict conflict in repo.Index.Conflicts)
@@ -149,6 +228,8 @@ namespace LibGit2Sharp.Tests
 
                 Assert.True(repo.Index.IsFullyMerged);
 
+                // Clear the flags:
+                wasCheckoutProgressCalled = false; wasCheckoutNotifyCalled = false;
                 RebaseResult continuedRebaseResult = repo.Rebase.Continue(Constants.Signature, options);
 
                 Assert.NotNull(continuedRebaseResult);
@@ -160,8 +241,8 @@ namespace LibGit2Sharp.Tests
 
                 Assert.Equal(3, beforeStepCallCount);
                 Assert.Equal(3, afterStepCallCount);
-
-                // TODO: Validate the expected HEAD commit ID
+                Assert.True(wasCheckoutProgressCalled, "CheckoutProgress callback was not called.");
+                Assert.True(wasCheckoutNotifyCalled, "CheckoutNotify callback was not called.");
             }
         }
 
