@@ -17,6 +17,7 @@ namespace LibGit2Sharp.Tests
         const string topicBranch1Name = "T1";
         const string topicBranch2Name = "T2";
         const string conflictBranch1Name = "C1";
+        const string topicBranch1PrimeName = "T1Prime";
 
         [Theory]
         [InlineData(topicBranch2Name, topicBranch2Name, topicBranch1Name, masterBranch1Name, 3)]
@@ -50,7 +51,7 @@ namespace LibGit2Sharp.Tests
                 int afterStepCallCount = 0;
 
                 List<ObjectId> PreRebaseCommits = new List<ObjectId>();
-                List<ObjectId> PostRebaseCommits = new List<ObjectId>();
+                List<CompletedRebaseStepInfo> PostRebaseResults = new List<CompletedRebaseStepInfo>();
                 ObjectId expectedParentId = upstream.Tip.Id;
 
                 RebaseOptions options = new RebaseOptions()
@@ -63,7 +64,7 @@ namespace LibGit2Sharp.Tests
                     RebaseStepCompleted = x =>
                     {
                         afterStepCallCount++;
-                        PostRebaseCommits.Add(x.CommitId);
+                        PostRebaseResults.Add(new CompletedRebaseStepInfo(x.CommitId, x.WasPatchAlreadyApplied));
                     },
                 };
 
@@ -91,19 +92,61 @@ namespace LibGit2Sharp.Tests
 
                 // Verify the chain of commits that resulted from the rebase.
                 Commit expectedParent = expectedOntoCommit;
-                foreach(Commit rebasedCommit in PostRebaseCommits.Select(id => repo.Lookup<Commit>(id)))
+                foreach(CompletedRebaseStepInfo stepInfo in PostRebaseResults)
                 {
+                    Commit rebasedCommit = repo.Lookup<Commit>(stepInfo.ObjectId);
                     Assert.Equal(expectedParent.Id, rebasedCommit.Parents.First().Id);
+                    Assert.False(stepInfo.WasPatchAlreadyApplied);
                     expectedParent = rebasedCommit;
                 }
 
-                Assert.Equal(repo.Head.Tip.Id, PostRebaseCommits.Last());
+                Assert.Equal(repo.Head.Tip.Id, PostRebaseResults.Last().ObjectId);
             }
         }
 
-        private class rebaseStepInfo
+        private class CompletedRebaseStepInfo
         {
-            public Commit Commit { get; set; }
+            public CompletedRebaseStepInfo(ObjectId objectId, bool wasPatchAlreadyApplied)
+            {
+                ObjectId = objectId;
+                WasPatchAlreadyApplied = wasPatchAlreadyApplied;
+            }
+
+            public ObjectId ObjectId { get; set; }
+
+            public bool WasPatchAlreadyApplied { get; set; }
+        }
+
+        private class CompletedRebaseStepInfoEqualityComparer : IEqualityComparer<CompletedRebaseStepInfo>
+        {
+            bool IEqualityComparer<CompletedRebaseStepInfo>.Equals(CompletedRebaseStepInfo x, CompletedRebaseStepInfo y)
+            {
+                if (x == null && y == null)
+                {
+                    return true;
+                }
+
+                if ((x == null && y != null ) ||
+                    (x != null && y == null ))
+                {
+                    return false;
+                }
+
+                return x.WasPatchAlreadyApplied == y.WasPatchAlreadyApplied &&
+                       ObjectId.Equals(x.ObjectId, y.ObjectId);
+            }
+
+            int IEqualityComparer<CompletedRebaseStepInfo>.GetHashCode(CompletedRebaseStepInfo obj)
+            {
+                int hashCode = obj.WasPatchAlreadyApplied.GetHashCode();
+
+                if (obj.ObjectId != null)
+                {
+                    hashCode += obj.ObjectId.GetHashCode();
+                }
+
+                return hashCode;
+            }
         }
 
         /// <summary>
@@ -335,7 +378,7 @@ namespace LibGit2Sharp.Tests
 
                 Assert.Throws<LibGit2SharpException>(() =>
                     repo.Rebase.Start(branch, upstream, onto, Constants.Signature, null));
-                }
+            }
         }
 
         [Fact]
@@ -368,6 +411,57 @@ namespace LibGit2Sharp.Tests
                 repo.Checkout(topicBranch1Name);
 
                 Assert.Null(repo.Rebase.GetCurrentStepInfo());
+            }
+        }
+
+        [Fact]
+        public void CanRebaseHandlePatchAlreadyApplied()
+        {
+            SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
+            var path = Repository.Init(scd.DirectoryPath);
+            using (Repository repo = new Repository(path))
+            {
+                ConstructRebaseTestRepository(repo);
+
+                repo.Checkout(topicBranch1Name);
+
+                 Branch topicBranch1Prime = repo.CreateBranch(topicBranch1PrimeName, masterBranch1Name);
+
+                string newFileRelativePath = "new_file.txt";
+                Touch(repo.Info.WorkingDirectory, newFileRelativePath, "New Content");
+                repo.Stage(newFileRelativePath);
+                Commit commit = repo.Commit("new commit 1", Constants.Signature, Constants.Signature, new CommitOptions());
+
+                repo.Checkout(topicBranch1Prime);
+                var cherryPickResult = repo.CherryPick(commit, Constants.Signature2);
+                Assert.Equal(CherryPickStatus.CherryPicked, cherryPickResult.Status);
+
+                string newFileRelativePath2 = "new_file_2.txt";
+                Touch(repo.Info.WorkingDirectory, newFileRelativePath2, "New Content for path 2");
+                repo.Stage(newFileRelativePath2);
+                repo.Commit("new commit 2", Constants.Signature, Constants.Signature, new CommitOptions());
+
+                Branch upstreamBranch = repo.Branches[topicBranch1Name];
+
+                List<CompletedRebaseStepInfo> rebaseResults = new List<CompletedRebaseStepInfo>();
+
+                RebaseOptions options = new RebaseOptions()
+                {
+                    RebaseStepCompleted = x => 
+                    {
+                        rebaseResults.Add(new CompletedRebaseStepInfo(x.CommitId, x.WasPatchAlreadyApplied));
+                    }
+                };
+
+                repo.Rebase.Start(null, upstreamBranch, null, Constants.Signature2, options);
+
+                List<CompletedRebaseStepInfo> expectedRebaseResults = new List<CompletedRebaseStepInfo>()
+                {
+                    new CompletedRebaseStepInfo(null, true),
+                    new CompletedRebaseStepInfo(new ObjectId("ebdea37ecf583fb7fa5c806a1c00b82f3987fbaa"), false),
+                };
+
+                Assert.Equal<CompletedRebaseStepInfo>(expectedRebaseResults, rebaseResults, new CompletedRebaseStepInfoEqualityComparer());
             }
         }
 
@@ -425,7 +519,7 @@ namespace LibGit2Sharp.Tests
             repo.Stage(filePathC);
             commit = repo.Commit("commit 3", Constants.Signature, Constants.Signature, new CommitOptions());
 
-            repo.CreateBranch(masterBranch1Name, commit, Constants.Signature);
+            Branch masterBranch1 = repo.CreateBranch(masterBranch1Name, commit, Constants.Signature);
 
             Touch(workdir, filePathB, string.Join(lineEnding, fileContentB1, fileContentB2));
             repo.Stage(filePathB);
@@ -455,7 +549,7 @@ namespace LibGit2Sharp.Tests
 
             repo.CreateBranch(topicBranch2Name, commit, Constants.Signature);
 
-            repo.Checkout(masterBranch1Name);
+            repo.Checkout(masterBranch1.Tip);
             Touch(workdir, filePathD, fileContentD1);
             repo.Stage(filePathD);
             commit = repo.Commit("commit 10", Constants.Signature, Constants.Signature, new CommitOptions());

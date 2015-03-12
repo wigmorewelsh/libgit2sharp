@@ -78,12 +78,19 @@ namespace LibGit2Sharp
                                 // commit and continue.
                                 if (repository.Index.IsFullyMerged)
                                 {
-                                    GitOid id = Proxy.git_rebase_commit(rebaseOperationHandle, null, committer);
+                                    Proxy.GitRebaseCommitResult rebase_commit_result = Proxy.git_rebase_commit(rebaseOperationHandle, null, committer);
 
                                     // Report that we just completed the step
                                     if (options.RebaseStepCompleted != null)
                                     {
-                                        options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, new ObjectId(id)));
+                                        if (rebase_commit_result.WasPatchAlreadyApplied)
+                                        {
+                                            options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo));
+                                        }
+                                        else
+                                        {
+                                            options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, new ObjectId(rebase_commit_result.CommitId)));
+                                        }
                                     }
                                 }
                                 else

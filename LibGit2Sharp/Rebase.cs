@@ -173,6 +173,7 @@ namespace LibGit2Sharp
             try
             {
                 rebase = Proxy.git_rebase_open(repository.Handle);
+                var rebaseCommitResult = Proxy.git_rebase_commit(rebase, null, committer);
 
                 // Report that we just completed the step
                 if (options.RebaseStepCompleted != null)
@@ -188,8 +189,14 @@ namespace LibGit2Sharp
                                                       currentStepIndex,
                                                       totalStepCount);
 
-                    GitOid id = Proxy.git_rebase_commit(rebase, null, committer);
-                    options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, new ObjectId(id)));
+                    if (rebaseCommitResult.WasPatchAlreadyApplied)
+                    {
+                        options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo));
+                    }
+                    else
+                    {
+                        options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, new ObjectId(rebaseCommitResult.CommitId)));
+                    }
                 }
 
                 RebaseResult rebaseResult = RebaseOperationImpl.Run(rebase, repository, committer, options);

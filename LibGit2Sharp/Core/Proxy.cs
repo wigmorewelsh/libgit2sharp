@@ -1689,7 +1689,7 @@ namespace LibGit2Sharp.Core
             return operation;
         }
 
-        public static GitOid git_rebase_commit(
+        public static GitRebaseCommitResult git_rebase_commit(
             RebaseSafeHandle rebase,
             Signature author,
             Signature committer)
@@ -1697,7 +1697,7 @@ namespace LibGit2Sharp.Core
             Ensure.ArgumentNotNull(rebase, "rebase");
             Ensure.ArgumentNotNull(committer, "committer");
 
-            GitOid commitId = new GitOid();
+            GitRebaseCommitResult commitResult = new GitRebaseCommitResult();
 
             using (ThreadAffinity())
             {
@@ -1710,8 +1710,17 @@ namespace LibGit2Sharp.Core
                     authorHandle = author == null ? 
                         new SignatureSafeHandle() : author.BuildHandle();
 
-                    int result = NativeMethods.git_rebase_commit(ref commitId, rebase, authorHandle, committerHandle, IntPtr.Zero, IntPtr.Zero);
-                    Ensure.ZeroResult(result);
+                    int result = NativeMethods.git_rebase_commit(ref commitResult.CommitId, rebase, authorHandle, committerHandle, IntPtr.Zero, IntPtr.Zero);
+
+                    if (result == (int)GitErrorCode.Applied)
+                    {
+                        commitResult.CommitId = GitOid.Empty;
+                        commitResult.WasPatchAlreadyApplied = true;
+                    }
+                    else
+                    {
+                        Ensure.ZeroResult(result);
+                    }
                 }
                 finally
                 {
@@ -1723,7 +1732,24 @@ namespace LibGit2Sharp.Core
                 }
             }
 
-            return commitId;
+            return commitResult;
+        }
+
+        /// <summary>
+        /// Struct to report the result of calling git_rebase_commit.
+        /// </summary>
+        public struct GitRebaseCommitResult
+        {
+            /// <summary>
+            /// The ID of the commit that was generated, if any
+            /// </summary>
+            public GitOid CommitId;
+
+            /// <summary>
+            /// bool to indicate if the patch was already applied.
+            /// If Patch was already applied, then CommitId will be empty (all zeros).
+            /// </summary>
+            public bool WasPatchAlreadyApplied;
         }
 
         public static void git_rebase_abort(
