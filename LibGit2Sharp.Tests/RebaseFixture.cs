@@ -50,7 +50,7 @@ namespace LibGit2Sharp.Tests
                 int beforeStepCallCount = 0;
                 int afterStepCallCount = 0;
 
-                List<ObjectId> PreRebaseCommits = new List<ObjectId>();
+                List<Commit> PreRebaseCommits = new List<Commit>();
                 List<CompletedRebaseStepInfo> PostRebaseResults = new List<CompletedRebaseStepInfo>();
                 ObjectId expectedParentId = upstream.Tip.Id;
 
@@ -59,12 +59,12 @@ namespace LibGit2Sharp.Tests
                     RebaseStepStarting =  x => 
                     {
                         beforeStepCallCount++;
-                        PreRebaseCommits.Add(x.StepInfo.ID);
+                        PreRebaseCommits.Add(x.StepInfo.Commit);
                     },
                     RebaseStepCompleted = x =>
                     {
                         afterStepCallCount++;
-                        PostRebaseResults.Add(new CompletedRebaseStepInfo(x.CommitId, x.WasPatchAlreadyApplied));
+                        PostRebaseResults.Add(new CompletedRebaseStepInfo(x.Commit, x.WasPatchAlreadyApplied));
                     },
                 };
 
@@ -88,31 +88,31 @@ namespace LibGit2Sharp.Tests
                     Until = expectedUntilCommit,
                     SortBy = CommitSortStrategies.Reverse | CommitSortStrategies.Topological,
                 };
-                Assert.Equal(repo.Commits.QueryBy(sourceCommitFilter).Select(c => c.Id), PreRebaseCommits);
+                Assert.Equal(repo.Commits.QueryBy(sourceCommitFilter), PreRebaseCommits);
 
                 // Verify the chain of commits that resulted from the rebase.
                 Commit expectedParent = expectedOntoCommit;
                 foreach(CompletedRebaseStepInfo stepInfo in PostRebaseResults)
                 {
-                    Commit rebasedCommit = repo.Lookup<Commit>(stepInfo.ObjectId);
+                    Commit rebasedCommit = stepInfo.Commit;
                     Assert.Equal(expectedParent.Id, rebasedCommit.Parents.First().Id);
                     Assert.False(stepInfo.WasPatchAlreadyApplied);
                     expectedParent = rebasedCommit;
                 }
 
-                Assert.Equal(repo.Head.Tip.Id, PostRebaseResults.Last().ObjectId);
+                Assert.Equal(repo.Head.Tip, PostRebaseResults.Last().Commit);
             }
         }
 
         private class CompletedRebaseStepInfo
         {
-            public CompletedRebaseStepInfo(ObjectId objectId, bool wasPatchAlreadyApplied)
+            public CompletedRebaseStepInfo(Commit commit, bool wasPatchAlreadyApplied)
             {
-                ObjectId = objectId;
+                Commit = commit;
                 WasPatchAlreadyApplied = wasPatchAlreadyApplied;
             }
 
-            public ObjectId ObjectId { get; set; }
+            public Commit Commit { get; set; }
 
             public bool WasPatchAlreadyApplied { get; set; }
         }
@@ -133,16 +133,16 @@ namespace LibGit2Sharp.Tests
                 }
 
                 return x.WasPatchAlreadyApplied == y.WasPatchAlreadyApplied &&
-                       ObjectId.Equals(x.ObjectId, y.ObjectId);
+                       ObjectId.Equals(x.Commit, y.Commit);
             }
 
             int IEqualityComparer<CompletedRebaseStepInfo>.GetHashCode(CompletedRebaseStepInfo obj)
             {
                 int hashCode = obj.WasPatchAlreadyApplied.GetHashCode();
 
-                if (obj.ObjectId != null)
+                if (obj.Commit != null)
                 {
-                    hashCode += obj.ObjectId.GetHashCode();
+                    hashCode += obj.Commit.GetHashCode();
                 }
 
                 return hashCode;
@@ -449,7 +449,7 @@ namespace LibGit2Sharp.Tests
                 {
                     RebaseStepCompleted = x => 
                     {
-                        rebaseResults.Add(new CompletedRebaseStepInfo(x.CommitId, x.WasPatchAlreadyApplied));
+                        rebaseResults.Add(new CompletedRebaseStepInfo(x.Commit, x.WasPatchAlreadyApplied));
                     }
                 };
 
@@ -458,7 +458,7 @@ namespace LibGit2Sharp.Tests
                 List<CompletedRebaseStepInfo> expectedRebaseResults = new List<CompletedRebaseStepInfo>()
                 {
                     new CompletedRebaseStepInfo(null, true),
-                    new CompletedRebaseStepInfo(new ObjectId("ebdea37ecf583fb7fa5c806a1c00b82f3987fbaa"), false),
+                    new CompletedRebaseStepInfo(repo.Lookup<Commit>("ebdea37ecf583fb7fa5c806a1c00b82f3987fbaa"), false),
                 };
 
                 Assert.Equal<CompletedRebaseStepInfo>(expectedRebaseResults, rebaseResults, new CompletedRebaseStepInfoEqualityComparer());

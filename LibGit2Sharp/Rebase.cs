@@ -184,7 +184,7 @@ namespace LibGit2Sharp
                     GitRebaseOperation gitRebasestepInfo = Proxy.git_rebase_operation_byindex(rebase, currentStepIndex);
 
                     var stepInfo = new RebaseStepInfo(gitRebasestepInfo.type,
-                                                      new ObjectId(gitRebasestepInfo.id),
+                                                      repository.Lookup<Commit>(new ObjectId(gitRebasestepInfo.id)),
                                                       LaxUtf8NoCleanupMarshaler.FromNative(gitRebasestepInfo.exec),
                                                       currentStepIndex,
                                                       totalStepCount);
@@ -195,7 +195,7 @@ namespace LibGit2Sharp
                     }
                     else
                     {
-                        options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, new ObjectId(rebaseCommitResult.CommitId)));
+                        options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, repository.Lookup<Commit>(new ObjectId(rebaseCommitResult.CommitId))));
                     }
                 }
 
@@ -257,7 +257,7 @@ namespace LibGit2Sharp
                 long totalStepCount = Proxy.git_rebase_operation_entrycount(rebaseHandle);
                 GitRebaseOperation gitRebasestepInfo = Proxy.git_rebase_operation_byindex(rebaseHandle, currentStepIndex);
                 var stepInfo = new RebaseStepInfo(gitRebasestepInfo.type,
-                                                  gitRebasestepInfo.id,
+                                                  repository.Lookup<Commit>(new ObjectId(gitRebasestepInfo.id)),
                                                   LaxUtf8NoCleanupMarshaler.FromNative(gitRebasestepInfo.exec),
                                                   currentStepIndex,
                                                   totalStepCount);

@@ -62,7 +62,7 @@ namespace LibGit2Sharp
                     else
                     {
                         RebaseStepInfo stepInfo = new RebaseStepInfo(rebaseOperationReport.type,
-                                                                     new ObjectId(rebaseOperationReport.id),
+                                                                     repository.Lookup<Commit>(new ObjectId(rebaseOperationReport.id)),
                                                                      LaxUtf8NoCleanupMarshaler.FromNative(rebaseOperationReport.exec),
                                                                      currentStepIndex,
                                                                      totalStepCount);
@@ -89,7 +89,7 @@ namespace LibGit2Sharp
                                         }
                                         else
                                         {
-                                            options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, new ObjectId(rebase_commit_result.CommitId)));
+                                            options.RebaseStepCompleted(new AfterRebaseStepInfo(stepInfo, repository.Lookup<Commit>(new ObjectId(rebase_commit_result.CommitId))));
                                         }
                                     }
                                 }
