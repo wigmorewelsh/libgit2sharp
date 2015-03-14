@@ -6,5 +6,5 @@ MONO_VER=3.6.0
 brew update
 which cmake || brew install cmake
 
-wget "http://download.mono-project.com/archive/${MONO_VER}/macos-10-x86/MonoFramework-MDK-${MONO_VER}.macos10.xamarin.x86.pkg"
-sudo installer -pkg "MonoFramework-MDK-${MONO_VER}.macos10.xamarin.x86.pkg" -target /
+wget "https://www.dropbox.com/s/c7zo5cldk7xylk0/MonoFramework-MDK-4.0.0.62.macos10.xamarin.x86.pkg?dl=1"
+sudo installer -pkg "MonoFramework-MDK-4.0.0.62.macos10.xamarin.x86.pkg" -target /
