@@ -162,14 +162,14 @@ namespace LibGit2Sharp.Tests
         [InlineData("new_tracked_file.txt", FileStatus.Added, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt" })]
         [InlineData("modified_staged_file.txt", FileStatus.Staged, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt" })]
         [InlineData("modified_unstaged_file.txt", FileStatus.Modified, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt" })]
-        public void MovingOverAnExistingFileThrows(string sourcePath, FileStatus sourceStatus, IEnumerable<string> destPaths)
+        public void MovingOverAnExistingFileThrows(string sourcePath, FileStatus sourceStatus, string[] destPaths)
         {
             InvalidMoveUseCases(sourcePath, sourceStatus, destPaths);
         }
 
         [Theory]
         [InlineData("new_untracked_file.txt", FileStatus.Untracked, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt", "deleted_unstaged_file.txt", "deleted_staged_file.txt", "i_dont_exist.txt" })]
-        public void MovingAFileWichIsNotUnderSourceControlThrows(string sourcePath, FileStatus sourceStatus, IEnumerable<string> destPaths)
+        public void MovingAFileWichIsNotUnderSourceControlThrows(string sourcePath, FileStatus sourceStatus, string[] destPaths)
         {
             InvalidMoveUseCases(sourcePath, sourceStatus, destPaths);
         }
@@ -178,7 +178,7 @@ namespace LibGit2Sharp.Tests
         [InlineData("deleted_unstaged_file.txt", FileStatus.Missing, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt", "deleted_unstaged_file.txt", "deleted_staged_file.txt", "i_dont_exist.txt" })]
         [InlineData("deleted_staged_file.txt", FileStatus.Removed, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt", "deleted_unstaged_file.txt", "deleted_staged_file.txt", "i_dont_exist.txt" })]
         [InlineData("i_dont_exist.txt", FileStatus.Nonexistent, new[] { "README", "new_tracked_file.txt", "modified_staged_file.txt", "modified_unstaged_file.txt", "new_untracked_file.txt", "deleted_unstaged_file.txt", "deleted_staged_file.txt", "i_dont_exist.txt" })]
-        public void MovingAFileNotInTheWorkingDirectoryThrows(string sourcePath, FileStatus sourceStatus, IEnumerable<string> destPaths)
+        public void MovingAFileNotInTheWorkingDirectoryThrows(string sourcePath, FileStatus sourceStatus, string[] destPaths)
         {
             InvalidMoveUseCases(sourcePath, sourceStatus, destPaths);
         }
@@ -471,12 +471,12 @@ namespace LibGit2Sharp.Tests
         {
             var path = SandboxAssumeUnchangedTestRepo();
             using (var repo = new Repository(path))
-            {             
+            {
                 var regularFile = repo.Index["hello.txt"];
                 Assert.False(regularFile.AssumeUnchanged);
 
                 var assumeUnchangedFile = repo.Index["world.txt"];
-                Assert.True(assumeUnchangedFile.AssumeUnchanged);                
+                Assert.True(assumeUnchangedFile.AssumeUnchanged);
             }
         }
 

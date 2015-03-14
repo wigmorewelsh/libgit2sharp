@@ -58,79 +58,18 @@
 //* portion of the software in compiled or object code form, you may
 //* only do so under a license that complies with this license.
 //**********************************************************************
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
 using Xunit;
-using Xunit.Extensions;
-using Xunit.Sdk;
 
 namespace LibGit2Sharp.Tests.TestHelpers
 {
     class SkippableFactAttribute : FactAttribute
     {
-        protected override IEnumerable<ITestCommand> EnumerateTestCommands(IMethodInfo method)
-        {
-            return base.EnumerateTestCommands(method).Select(SkippableTestCommand.Wrap(method));
-        }
     }
 
     class SkippableTheoryAttribute : TheoryAttribute
     {
-        protected override IEnumerable<ITestCommand> EnumerateTestCommands(IMethodInfo method)
-        {
-            return base.EnumerateTestCommands(method).Select(SkippableTestCommand.Wrap(method));
-        }
     }
 
-    class SkippableTestCommand : ITestCommand
-    {
-        public static Func<ITestCommand, ITestCommand> Wrap(IMethodInfo method)
-        {
-            return c => new SkippableTestCommand(method, c);
-        }
-
-        private readonly IMethodInfo method;
-        private readonly ITestCommand inner;
-
-        private SkippableTestCommand(IMethodInfo method, ITestCommand inner)
-        {
-            this.method = method;
-            this.inner = inner;
-        }
-
-        public MethodResult Execute(object testClass)
-        {
-            try
-            {
-                return inner.Execute(testClass);
-            }
-            catch (SkipException e)
-            {
-                return new SkipResult(method, DisplayName, e.Reason);
-            }
-        }
-
-        public XmlNode ToStartXml()
-        {
-            return inner.ToStartXml();
-        }
-
-        public string DisplayName
-        {
-            get { return inner.DisplayName; }
-        }
-
-        public bool ShouldCreateInstance
-        {
-            get { return inner.ShouldCreateInstance; }
-        }
-
-        public int Timeout
-        {
-            get { return inner.Timeout; }
-        }
-    }
 
     class SkipException : Exception
     {

@@ -83,8 +83,8 @@ namespace LibGit2Sharp.Tests
                 Assert.Null(repo.Index[relativePath]);
                 Assert.Equal(status, repo.RetrieveStatus(relativePath));
 
-                Assert.DoesNotThrow(() => repo.Stage(relativePath));
-                Assert.DoesNotThrow(() => repo.Stage(relativePath, new StageOptions { ExplicitPathsOptions = new ExplicitPathsOptions { ShouldFailOnUnmatchedPath = false } }));
+                repo.Stage(relativePath);
+                repo.Stage(relativePath, new StageOptions { ExplicitPathsOptions = new ExplicitPathsOptions { ShouldFailOnUnmatchedPath = false } });
 
                 Assert.Equal(status, repo.RetrieveStatus(relativePath));
             }
