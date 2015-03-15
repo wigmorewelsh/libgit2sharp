@@ -134,7 +134,8 @@ namespace LibGit2Sharp
                     RebaseOperationImpl.Run(rebaseOperationHandle, 
                                             this.repository,
                                             committer,
-                                            options);
+                                            options,
+                                            true);
                 return rebaseResult;
             }
             finally
@@ -199,7 +200,7 @@ namespace LibGit2Sharp
                     }
                 }
 
-                RebaseResult rebaseResult = RebaseOperationImpl.Run(rebase, repository, committer, options);
+                RebaseResult rebaseResult = RebaseOperationImpl.Run(rebase, repository, committer, options, false);
                 return rebaseResult;
             }
             finally
