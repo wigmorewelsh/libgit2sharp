@@ -57,7 +57,7 @@ build_script:
 - msbuild "%APPVEYOR_BUILD_FOLDER%\LibGit2Sharp.sln" /verbosity:normal /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /property:ExtraDefine="LEAKS_IDENTIFYING"
 
 test_script:
-- '%APPVEYOR_BUILD_FOLDER\packages\xunit.runner.console.2.0.0-rc-build2924\tools\%xunit_runner%  "%APPVEYOR_BUILD_FOLDER%\LibGit2Sharp.Tests\bin\Release\LibGit2Sharp.Tests.dll" /appveyor'
+- '%APPVEYOR_BUILD_FOLDER%\packages\xunit.runner.console.2.0.0-rc-build2924\tools\%xunit_runner%  "%APPVEYOR_BUILD_FOLDER%\LibGit2Sharp.Tests\bin\Release\LibGit2Sharp.Tests.dll" /appveyor'
 
 - IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
 
