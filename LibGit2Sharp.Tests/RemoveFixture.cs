@@ -50,7 +50,7 @@ namespace LibGit2Sharp.Tests
             string path = SandboxStandardTestRepo();
             using (var repo = new Repository(path))
             {
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
 
                 string fullpath = Path.Combine(repo.Info.WorkingDirectory, filename);
 
@@ -110,7 +110,7 @@ namespace LibGit2Sharp.Tests
                 repo.Stage(Touch(repo.Info.WorkingDirectory, "2/5.txt", "for"));
                 repo.Stage(Touch(repo.Info.WorkingDirectory, "2/6.txt", "fyve"));
 
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
 
                 Assert.True(Directory.Exists(Path.Combine(repo.Info.WorkingDirectory, "2")));
                 repo.Remove("2", false);
@@ -125,7 +125,7 @@ namespace LibGit2Sharp.Tests
             string path = SandboxStandardTestRepo();
             using (var repo = new Repository(path))
             {
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
 
                 Assert.True(Directory.Exists(Path.Combine(repo.Info.WorkingDirectory, "1")));
                 repo.Remove("1");

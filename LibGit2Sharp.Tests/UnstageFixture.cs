@@ -16,7 +16,7 @@ namespace LibGit2Sharp.Tests
             string path = SandboxStandardTestRepo();
             using (var repo = new Repository(path))
             {
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
 
                 string filename = Path.Combine("1", "branch_file.txt");
                 const string posixifiedFileName = "1/branch_file.txt";
@@ -72,7 +72,7 @@ namespace LibGit2Sharp.Tests
             string path = SandboxStandardTestRepo();
             using (var repo = new Repository(path))
             {
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
                 Assert.Equal(doesCurrentlyExistInTheIndex, (repo.Index[relativePath] != null));
                 Assert.Equal(currentStatus, repo.RetrieveStatus(relativePath));
 
@@ -117,7 +117,7 @@ namespace LibGit2Sharp.Tests
             string path = SandboxStandardTestRepo();
             using (var repo = new Repository(path))
             {
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
 
                 const string filename = "deleted_staged_file.txt";
 

@@ -40,7 +40,7 @@ namespace LibGit2Sharp
             }
         }
 
-        private IndexReucEntry this[int index]
+        private IndexReucEntry this[long index]
         {
             get
             {
@@ -55,9 +55,9 @@ namespace LibGit2Sharp
         {
             var list = new List<IndexReucEntry>();
 
-            int count = Proxy.git_index_reuc_entrycount(repo.Index.Handle);
+            long count = Proxy.git_index_reuc_entrycount(repo.Index.Handle);
 
-            for (int i = 0; i < count; i++)
+            for (long i = 0; i < count; i++)
             {
                 list.Add(this[i]);
             }

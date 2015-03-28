@@ -26,7 +26,7 @@ namespace LibGit2Sharp
             this.repo = repo;
         }
 
-        private IndexNameEntry this[int index]
+        private IndexNameEntry this[long index]
         {
             get
             {
@@ -41,9 +41,9 @@ namespace LibGit2Sharp
         {
             var list = new List<IndexNameEntry>();
 
-            int count = Proxy.git_index_name_entrycount(repo.Index.Handle);
+            long count = Proxy.git_index_name_entrycount(repo.Index.Handle);
 
-            for (int i = 0; i < count; i++)
+            for (long i = 0; i < count; i++)
             {
                 list.Add(this[i]);
             }

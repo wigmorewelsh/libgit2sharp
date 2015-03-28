@@ -69,7 +69,7 @@ namespace LibGit2Sharp.Tests
             var path = SandboxMergedTestRepo();
             using (var repo = new Repository(path))
             {
-                int count = repo.Index.Count;
+                long count = repo.Index.Count;
 
                 string fullpath = Path.Combine(repo.Info.WorkingDirectory, filename);
 

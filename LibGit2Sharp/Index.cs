@@ -54,7 +54,7 @@ namespace LibGit2Sharp
         /// <summary>
         /// Gets the number of <see cref="IndexEntry"/> in the <see cref="Index"/>.
         /// </summary>
-        public virtual int Count
+        public virtual long Count
         {
             get { return Proxy.git_index_entrycount(handle); }
         }
@@ -94,10 +94,9 @@ namespace LibGit2Sharp
 
         private List<IndexEntry> AllIndexEntries()
         {
-            var entryCount = Count;
-            var list = new List<IndexEntry>(entryCount);
+            var list = new List<IndexEntry>();
 
-            for (int i = 0; i < entryCount; i++)
+            for (int i = 0; i < Count; i++)
             {
                 list.Add(this[i]);
             }
