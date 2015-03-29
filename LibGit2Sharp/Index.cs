@@ -81,7 +81,7 @@ namespace LibGit2Sharp
             }
         }
 
-        private IndexEntry this[int index]
+        private IndexEntry this[long index]
         {
             get
             {
@@ -92,16 +92,12 @@ namespace LibGit2Sharp
 
         #region IEnumerable<IndexEntry> Members
 
-        private List<IndexEntry> AllIndexEntries()
+        private IEnumerable<IndexEntry> AllIndexEntries()
         {
-            var list = new List<IndexEntry>();
-
-            for (int i = 0; i < Count; i++)
+            for (long i = 0; i < Count; i++)
             {
-                list.Add(this[i]);
+                yield return this[i];
             }
-
-            return list;
         }
 
         /// <summary>

@@ -51,18 +51,14 @@ namespace LibGit2Sharp
 
         #region IEnumerable<IndexReucEntry> Members
 
-        private List<IndexReucEntry> AllIndexReucs()
+        private IEnumerable<IndexReucEntry> AllIndexReucs()
         {
-            var list = new List<IndexReucEntry>();
-
             long count = Proxy.git_index_reuc_entrycount(repo.Index.Handle);
 
             for (long i = 0; i < count; i++)
             {
-                list.Add(this[i]);
+                yield return this[i];
             }
-
-            return list;
         }
 
         /// <summary>
