@@ -1609,14 +1609,13 @@ namespace LibGit2Sharp.Core
             GitAnnotatedCommitHandle branch,
             GitAnnotatedCommitHandle upstream,
             GitAnnotatedCommitHandle onto,
-            GitSignature signature,
             ref GitRebaseOptions options)
         {
             RebaseSafeHandle rebase = null;
 
             using (ThreadAffinity())
             {
-                int result = NativeMethods.git_rebase_init(out rebase, repo, branch, upstream, onto, signature, ref options);
+                int result = NativeMethods.git_rebase_init(out rebase, repo, branch, upstream, onto, ref options);
                 Ensure.ZeroResult(result);
             }
 
@@ -1707,7 +1706,7 @@ namespace LibGit2Sharp.Core
                 try
                 {
                     committerHandle = committer.BuildHandle();
-                    authorHandle = author == null ? 
+                    authorHandle = author == null ?
                         new SignatureSafeHandle() : author.BuildHandle();
 
                     int result = NativeMethods.git_rebase_commit(ref commitResult.CommitId, rebase, authorHandle, committerHandle, IntPtr.Zero, IntPtr.Zero);
@@ -1753,16 +1752,13 @@ namespace LibGit2Sharp.Core
         }
 
         public static void git_rebase_abort(
-            RebaseSafeHandle rebase,
-            Signature signature)
+            RebaseSafeHandle rebase)
         {
             Ensure.ArgumentNotNull(rebase, "rebase");
-            Ensure.ArgumentNotNull(signature, "signature");
 
             using (ThreadAffinity())
-            using (var signatureHandle = signature.BuildHandle())
             {
-                int result = NativeMethods.git_rebase_abort(rebase, signatureHandle);
+                int result = NativeMethods.git_rebase_abort(rebase);
             }
         }
 

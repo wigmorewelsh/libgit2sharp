@@ -128,10 +128,10 @@ namespace LibGit2Sharp
                     annotatedBranchCommitHandle,
                     annotatedUpstreamRefPtrCommitHandle,
                     annotatedOntoRefPtrCommitHandle,
-                    null, ref gitRebaseOptions);
+                    ref gitRebaseOptions);
 
                 RebaseResult rebaseResult =
-                    RebaseOperationImpl.Run(rebaseOperationHandle, 
+                    RebaseOperationImpl.Run(rebaseOperationHandle,
                                             this.repository,
                                             committer,
                                             options,
@@ -213,16 +213,13 @@ namespace LibGit2Sharp
         /// <summary>
         /// Abort the rebase operation.
         /// </summary>
-        /// <param name="signature">The <see cref="Signature"/> of who is reborting the rebase.</param>
-        public virtual void Abort(Signature signature)
+        public virtual void Abort()
         {
-            Ensure.ArgumentNotNull(signature, "signature");
-
             RebaseSafeHandle rebase = null;
             try
             {
                 rebase = Proxy.git_rebase_open(repository.Handle);
-                Proxy.git_rebase_abort(rebase, signature);
+                Proxy.git_rebase_abort(rebase);
             }
             finally
             {

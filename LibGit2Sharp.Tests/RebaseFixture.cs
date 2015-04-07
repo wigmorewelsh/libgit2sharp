@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using LibGit2Sharp.Core;
 using LibGit2Sharp.Tests.TestHelpers;
 using Xunit;
 using Xunit.Extensions;
@@ -56,7 +52,7 @@ namespace LibGit2Sharp.Tests
 
                 RebaseOptions options = new RebaseOptions()
                 {
-                    RebaseStepStarting =  x => 
+                    RebaseStepStarting =  x =>
                     {
                         beforeStepCallCount++;
                         PreRebaseCommits.Add(x.StepInfo.Commit);
@@ -346,7 +342,7 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(0, rebaseResult.CompletedStepCount);
                 Assert.Equal(3, rebaseResult.TotalStepCount);
 
-                repo.Rebase.Abort(Constants.Signature);
+                repo.Rebase.Abort();
                 Assert.False(repo.RetrieveStatus().IsDirty);
                 Assert.True(repo.Index.IsFullyMerged);
                 Assert.Equal(CurrentOperation.None, repo.Info.CurrentOperation);
@@ -396,7 +392,7 @@ namespace LibGit2Sharp.Tests
                     repo.Rebase.Continue(Constants.Signature, new RebaseOptions()));
 
                 Assert.Throws<NotFoundException>(() =>
-                    repo.Rebase.Abort(Constants.Signature));
+                    repo.Rebase.Abort());
             }
         }
 
@@ -447,7 +443,7 @@ namespace LibGit2Sharp.Tests
 
                 RebaseOptions options = new RebaseOptions()
                 {
-                    RebaseStepCompleted = x => 
+                    RebaseStepCompleted = x =>
                     {
                         rebaseResults.Add(new CompletedRebaseStepInfo(x.Commit, x.WasPatchAlreadyApplied));
                     }
@@ -519,7 +515,7 @@ namespace LibGit2Sharp.Tests
             repo.Stage(filePathC);
             commit = repo.Commit("commit 3", Constants.Signature, Constants.Signature, new CommitOptions());
 
-            Branch masterBranch1 = repo.CreateBranch(masterBranch1Name, commit, Constants.Signature);
+            Branch masterBranch1 = repo.CreateBranch(masterBranch1Name, commit);
 
             Touch(workdir, filePathB, string.Join(lineEnding, fileContentB1, fileContentB2));
             repo.Stage(filePathB);
@@ -533,7 +529,7 @@ namespace LibGit2Sharp.Tests
             repo.Stage(filePathB);
             commit = repo.Commit("commit 6", Constants.Signature, Constants.Signature, new CommitOptions());
 
-            repo.CreateBranch(topicBranch1Name, commit, Constants.Signature);
+            repo.CreateBranch(topicBranch1Name, commit);
 
             Touch(workdir, filePathC, string.Join(lineEnding, fileContentC1, fileContentC2));
             repo.Stage(filePathC);
@@ -547,7 +543,7 @@ namespace LibGit2Sharp.Tests
             repo.Stage(filePathC);
             commit = repo.Commit("commit 9", Constants.Signature, Constants.Signature, new CommitOptions());
 
-            repo.CreateBranch(topicBranch2Name, commit, Constants.Signature);
+            repo.CreateBranch(topicBranch2Name, commit);
 
             repo.Checkout(masterBranch1.Tip);
             Touch(workdir, filePathD, fileContentD1);
@@ -562,13 +558,13 @@ namespace LibGit2Sharp.Tests
             repo.Stage(filePathD);
             commit = repo.Commit("commit 12", Constants.Signature, Constants.Signature, new CommitOptions());
 
-            repo.CreateBranch(masterBranch2Name, commit, Constants.Signature);
+            repo.CreateBranch(masterBranch2Name, commit);
 
             // Create commit / branch that conflicts with T1 and T2
             Touch(workdir, filePathB, string.Join(lineEnding, fileContentB1, fileContentB2 + fileContentB3 + fileContentB4));
             repo.Stage(filePathB);
             commit = repo.Commit("commit 13", Constants.Signature, Constants.Signature, new CommitOptions());
-            repo.CreateBranch(conflictBranch1Name, commit, Constants.Signature);
+            repo.CreateBranch(conflictBranch1Name, commit);
         }
     }
 }

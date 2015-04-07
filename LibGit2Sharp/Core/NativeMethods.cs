@@ -198,7 +198,6 @@ namespace LibGit2Sharp.Core
             GitAnnotatedCommitHandle branch,
             GitAnnotatedCommitHandle upstream,
             GitAnnotatedCommitHandle onto,
-            GitSignature signature,
             ref GitRebaseOptions options);
 
         [DllImport(libgit2)]
@@ -236,8 +235,7 @@ namespace LibGit2Sharp.Core
 
         [DllImport(libgit2)]
         internal static extern int git_rebase_abort(
-            RebaseSafeHandle rebase,
-            SignatureSafeHandle signature);
+            RebaseSafeHandle rebase);
 
         [DllImport(libgit2)]
         internal static extern int git_rebase_finish(
